@@ -6,7 +6,9 @@ require.config({
 
     config: {
         session: {
-            auth_url:   'http://127.0.0.1:9999/users/login'
+            tipi_url:   'http://127.0.0.1:9999/users/login',
+            store_key:  'tipi_session',
+            timeout:    1800    //  30 minutes
         }
     },
 
