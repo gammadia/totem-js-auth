@@ -6,8 +6,8 @@ require.config({
 
     config: {
         session: {
-            tipi_url:   'http://127.0.0.1:9999/users/login',
-            store_key:  'tipi_session',
+            login_url:   'http://127.0.0.1:9999/users/login',
+            ping_url:   'http://127.0.0.1:9999/session/ping',
             timeout:    1800    //  30 minutes
         }
     },

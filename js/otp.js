@@ -22,9 +22,10 @@ define(['vendors/cryptojs'], function (CryptoJS) {
         /**
          *  Création du code et encodage en base64
          *
-         *  @returns {String}   Code en base64
+         *  @param {Boolean} raw Retourner le buffer sans conversion en base64
+         *  @returns {String | WordArray}   Code en base64
          */
-        getCode: function () {
+        getCode: function (raw) {
             var hash = CryptoJS.HmacSHA512(
                     String(Math.floor((new Date()) / 30000)),   //  Unix timestamp / 30
                     this.secret
@@ -38,7 +39,11 @@ define(['vendors/cryptojs'], function (CryptoJS) {
                 hash.words.slice(hash.words.length - (key_size / 32))
             );
 
-            return hash.toString(CryptoJS.enc.Base64);
+            if (!raw) {
+                hash = hash.toString(CryptoJS.enc.Base64);
+            }
+
+            return hash;
         }
     };
 
