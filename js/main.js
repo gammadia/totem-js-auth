@@ -6,7 +6,9 @@ require.config({
 
     config: {
         session: {
-            auth_url:   'http://127.0.0.1:9999/users/login'
+            login_url:   'http://127.0.0.1:9999/users/login',
+            ping_url:   'http://127.0.0.1:9999/session/ping',
+            timeout:    1800    //  30 minutes
         }
     },
 
