@@ -295,6 +295,7 @@ define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, mo
 
                 if (data.success) {
                     that.touch();
+                    that.persist();
                 } else {
                     that.destroy();
                 }

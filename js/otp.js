@@ -12,6 +12,20 @@ define(['vendors/cryptojs'], function (CryptoJS) {
         key_size = 96,
 
         /**
+         *  Base du dernier hash généré.
+         *
+         *  @type {Number}
+         */
+        last_time = null,
+
+        /**
+         *  Dernier code retourné.
+         *
+         *  @type {String}
+         */
+        last_hash = null,
+
+        /**
          *  Objet Otp
          *
          *  @type {Object}
@@ -26,24 +40,30 @@ define(['vendors/cryptojs'], function (CryptoJS) {
          *  @returns {String | WordArray}   Code en base64
          */
         getCode: function (raw) {
-            var hash = CryptoJS.HmacSHA512(
-                    String(Math.floor((new Date()) / 30000)),   //  Unix timestamp / 30
+            var time = Math.floor((new Date()) / 30000),   //  Unix timestamp / 30
+                hash = null;
+
+            if (last_time !== time) {
+                hash = CryptoJS.HmacSHA512(
+                    String(time),
                     this.secret
                 );
 
-            //  Retrait des bits non significatifs
-            hash.clamp();
+                //  Retrait des bits non significatifs
+                hash.clamp();
 
-            //  Garde seulement les [key_size] bits les moins significatifs
-            hash = CryptoJS.lib.WordArray.create(
-                hash.words.slice(hash.words.length - (key_size / 32))
-            );
+                //  Garde seulement les [key_size] bits les moins significatifs
+                hash = CryptoJS.lib.WordArray.create(
+                    hash.words.slice(hash.words.length - (key_size / 32))
+                );
 
-            if (!raw) {
-                hash = hash.toString(CryptoJS.enc.Base64);
+                last_time = time;
+                last_hash = hash;
+            } else {
+                hash = last_hash;
             }
 
-            return hash;
+            return raw ? hash : hash.toString(CryptoJS.enc.Base64);
         }
     };
 
