@@ -38,21 +38,42 @@ define(['jquery', 'session'], function (jQuery, Session) {
 
         //  Action du login
         jQuery('#btn_login').click(function () {
+            /**
+             *  Demande de login.
+             */
             session.login(
                 jQuery('input[name="input_username"]').val(),
                 jQuery('input[name="input_password"]').val()
             ).done(function () {
+                /**
+                 *  Gestion du login ok ici
+                 */
                 console.log('Sucess');
-                session.ping();
                 dump_status();
             }).fail(function () {
+                /**
+                 *  Gestion d'erreur de login ou mauvais mot de passe ici.
+                 *
+                 *  Note: mot de passe incorrect et utilisateur non existant: 400 Bad Request.
+                 */
                 jQuery('input[name="input_password"]').val('');
                 console.log('Error');
             });
         });
 
+        /**
+         *  Fermeture d'une session
+         */
         jQuery('#btn_logout').click(function () {
-            session.destroy();
+            session.logout();
+            dump_status();
+        });
+
+        /**
+         *  Lecture des données de l'utilisateur dans Tipi
+         */
+        jQuery('#btn_logout').click(function () {
+            session.logout();
             dump_status();
         });
 

@@ -269,6 +269,29 @@ define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, mo
         },
 
         /**
+         *  Ajout les informations d'identification à un objet de config jQuery.ajax.
+         *
+         *  jQuery.ajay(url, session.authentify({
+         *      type: 'POST',
+         *      data: {
+         *          key: 'value'
+         *      }
+         *  }));
+         *
+         *  @param   {Object} options Options de la requête ajax
+         *
+         *  @returns {Object}         Options avec les informations d'identification
+         */
+        authentify: function (options) {
+            options = options || {};
+            options.headers = options.headers || {};
+
+            options.headers.Authorization = this.getToken();
+
+            return options;
+        },
+
+        /**
          *  "Ping" la session sur le serveur.
          *  Vérifie si elle est toujours valide et met à jour le timeout.
          *
@@ -279,15 +302,12 @@ define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, mo
 
             jQuery.ajax(
                 module.config().ping_url,
-                {
+                this.authentify({
                     type: 'POST',
-                    headers: {
-                        'Authorization': this.getToken()
-                    },
                     data: {
                         timestamp: new Date()
                     }
-                }
+                })
             ).done(function (data) {
                 if (typeof data !== 'object') {
                     data = jQuery.parseJSON(data);
@@ -302,6 +322,22 @@ define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, mo
             }).fail(function () {
                 that.destroy();
             });
+        },
+
+        /**
+         *  Déconnexion d'une session
+         *
+         *  @returns {[type]} [description]
+         */
+        logout: function () {
+            jQuery.ajax(
+                module.config().logout_url,
+                this.authentify({
+                    type: 'POST'
+                })
+            );
+
+            this.destroy();
         },
 
         /**
