@@ -66,7 +66,7 @@ define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, mo
             this.promise = this.promise || jQuery.Deferred();
 
             jQuery.post(
-                module.config().login_url,
+                module.config().tipi_url + 'session/login',
                 this.getRequest(),
                 this.getResponseHandler()
             ).fail(function () {
@@ -123,7 +123,7 @@ define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, mo
             var that = this;
 
             jQuery.post(
-                module.config().login_url,
+                module.config().tipi_url + 'session/login',
                 {
                     M1: this.srp.getM1().toString(16)
                 }
@@ -301,7 +301,7 @@ define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, mo
             var that = this;
 
             jQuery.ajax(
-                module.config().ping_url,
+                module.config().tipi_url + 'session/ping',
                 this.authentify({
                     type: 'POST',
                     data: {
@@ -331,7 +331,7 @@ define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, mo
          */
         logout: function () {
             jQuery.ajax(
-                module.config().logout_url,
+                module.config().tipi_url + 'session/logout',
                 this.authentify({
                     type: 'POST'
                 })
@@ -406,10 +406,39 @@ define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, mo
             this.username = username || '';
             this.password = password || '';
 
-            //  Simplification du user, évite les fautes de frappes, majuscules, éspaces, ponctuation, etc.
+            //  Simplification du user, évite les fautes de frappes, majuscules, espaces, ponctuation, etc.
             this.username = this.username.toLowerCase().replace(/[^a-zA-Z0-9]+/g, '');
 
             return this.make_request();
+        },
+
+        /**
+         *  Lecture des données de l'utilisateur
+         *
+         *  @param {String} namespace Nom du namespace voulu
+         *  @returns {Object} Données du namespace
+         */
+        getUserData: function (namespace) {
+            var promise = jQuery.Deferred();
+
+            if (!namespace) {
+                promise.reject(new Error('No namespace'));
+            }
+
+            jQuery.ajax(
+                module.config().tipi_url + 'users/data/' + namespace,
+                this.authentify()
+            ).done(function (data) {
+                if (typeof data !== 'object') {
+                    data = jQuery.parseJSON(data);
+                }
+
+                promise.resolve(data);
+            }).fail(function () {
+                promise.reject(new Error('Unable to get data'));
+            });
+
+            return promise.promise();
         }
     };
 
