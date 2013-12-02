@@ -1,7 +1,7 @@
 /*jslint browser: true */
 /*global define */
 
-define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, module, CryptoJS, jQuery, Otp) {
+define(['srp', 'module', 'vendor/cryptojs', 'jquery', 'otp'], function (srp, module, CryptoJS, jQuery, Otp) {
     'use strict';
 
     var /**
@@ -48,6 +48,14 @@ define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, mo
         instance = null,
 
         /**
+         *  Version de l'API à utiliser sur le serveur
+         *  ~2 = 2.*.*
+         *
+         *  @type {String}
+         */
+        api_version = '~2',
+
+        /**
          *  Objet de gestion de la session utilisateur. Singleton.
          *
          *  @type {Object}
@@ -65,9 +73,16 @@ define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, mo
 
             this.promise = this.promise || jQuery.Deferred();
 
-            jQuery.post(
+            jQuery.ajax(
                 module.config().tipi_url + 'session/login',
-                this.getRequest(),
+                {
+                    type: 'POST',
+                    data: this.getRequest(),
+                    headers: {
+                        'Accept-Version': api_version
+                    }
+                }
+            ).done(
                 this.getResponseHandler()
             ).fail(function () {
                 that.promise.reject();
@@ -108,6 +123,7 @@ define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, mo
                         this.validateKey();
                     } else {
                         this.promise.reject();
+                        this.promise = null;
                     }
                 };
 
@@ -164,6 +180,7 @@ define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, mo
             this.startPing();
 
             this.promise.resolve();
+            this.promise = null;
         },
 
         /**
@@ -173,7 +190,7 @@ define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, mo
             localStorage.setItem(
                 store_key,
                 JSON.stringify({
-                    username:   this.username,
+                    user:   this.user,
                     key:        this.key,
                     sess_id:    this.sess_id,
                     heartbeat:  this.heartbeat
@@ -287,6 +304,7 @@ define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, mo
             options.headers = options.headers || {};
 
             options.headers.Authorization = this.getToken();
+            options.headers['Accept-Version'] = api_version;
 
             return options;
         },
@@ -348,7 +366,7 @@ define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, mo
                 window.clearInterval(ping_interval);
             }
 
-            this.username = null;
+            this.user = null;
             this.key = null;
             this.sess_id = null;
             this.heartbeat = null;
@@ -383,7 +401,7 @@ define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, mo
             var sess = JSON.parse(localStorage.getItem(store_key));
 
             if (sess) {
-                this.username   = sess.username || null;
+                this.user   = sess.user || null;
                 this.key        = sess.key || null;
                 this.sess_id    = sess.sess_id || null;
                 this.heartbeat  = sess.heartbeat || null;
@@ -408,6 +426,8 @@ define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, mo
 
             //  Simplification du user, évite les fautes de frappes, majuscules, espaces, ponctuation, etc.
             this.username = this.username.toLowerCase().replace(/[^a-zA-Z0-9]+/g, '');
+
+            this.destroy();
 
             return this.make_request();
         },
@@ -447,9 +467,9 @@ define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, mo
      *
      *  @constructor
      */
-    session.create = function () {
+    function create_session() {
         instance = Object.create(session.prototype, {
-            username: {
+            user: {
                 value: null,
                 enumerable: false,
                 writable: true
@@ -479,7 +499,7 @@ define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, mo
         instance.init();
 
         return instance;
-    };
+    }
 
     /**
      *  Retourne l'instance de session.
@@ -488,7 +508,7 @@ define(['srp', 'module', 'vendors/cryptojs', 'jquery', 'otp'], function (srp, mo
      */
     session.getInstance = function () {
         if (instance === null) {
-            instance = session.create();
+            instance = create_session();
         }
 
         return instance;

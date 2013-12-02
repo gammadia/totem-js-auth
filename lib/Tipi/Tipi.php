@@ -1,6 +1,6 @@
 <?php
 
-namespace GamLib;
+namespace Tipi;
 
 class Tipi {
 	const ERR_NO_NAMESPACE = 32;
@@ -8,14 +8,14 @@ class Tipi {
 	/**
 	 *  Instance du singleton Tipi.
 	 *
-	 *  @var GamLib\Tipi
+	 *  @var Tipi\Tipi
 	 */
 	private static $instance = null;
 
 	/**
 	 *  Lecture de l'instance de Tipi
 	 *
-	 *  @return GamLib\Tipi Instance du singleton
+	 *  @return Tipi\Tipi Instance du singleton
 	 */
 	public static function getInstance() {
 		if (self::$instance === null) {
@@ -96,7 +96,7 @@ class Tipi {
 	/**
 	 *  Générateur Otp
 	 *
-	 *  @var GamLib\Tipi\Otp
+	 *  @var Tipi\Tipi\Otp
 	 */
 	private $generator = null;
 
@@ -184,9 +184,10 @@ class Tipi {
 			);
 		}
 
-		if (!isset(self::$cache[$namespace])) {
+		if ($force_refresh || !isset(self::$cache[$namespace])) {
 			self::$cache[$namespace] = json_decode(
-				$this->makeRequest('session/' . $session->getId() . '/' . $namespace)
+				$this->makeRequest('session/' . $session->getId() . '/' . $namespace),
+				true
 			);
 		}
 

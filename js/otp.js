@@ -1,7 +1,7 @@
 /*jslint browser: true */
 /*global define */
 
-define(['vendors/cryptojs'], function (CryptoJS) {
+define(['vendor/cryptojs'], function (CryptoJS) {
     'use strict';
 
     var /**

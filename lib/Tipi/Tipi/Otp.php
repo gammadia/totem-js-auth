@@ -1,6 +1,6 @@
 <?php
 
-namespace GamLib\Tipi;
+namespace Tipi\Tipi;
 
 class Otp {
 	/**
@@ -29,7 +29,7 @@ class Otp {
 	 *
 	 *  @param   string secret Clef privée, String en base64
 	 *
-	 *  @return GamLib\Tipi\Otp        Générateur OTP
+	 *  @return Tipi\Tipi\Otp        Générateur OTP
 	 */
 	public function __construct($secret) {
 		if (is_string($secret)) {

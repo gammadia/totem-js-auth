@@ -4,7 +4,7 @@
 define(['jquery', 'session'], function (jQuery, Session) {
     'use strict';
 
-    var session = Session.create(),
+    var session = Session.getInstance(),
 
         dump_status = function () {
             var tipi_session = localStorage.getItem('tipi_session'),
@@ -24,7 +24,7 @@ define(['jquery', 'session'], function (jQuery, Session) {
                 tipi_session = JSON.parse(tipi_session);
 
                 jQuery('#box_status').html(
-                    'username: ' + (tipi_session.username || '') + "\n" +
+                    'user: ' + (tipi_session.user || '') + "\n" +
                     'key: ' + (tipi_session.key || '') + "\n" +
                     'sess_id: ' + (tipi_session.sess_id || '') + "\n" +
                     'heartbeat: ' + (new Date(tipi_session.heartbeat * 1000) || '') + "\n" +
