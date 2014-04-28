@@ -1,7 +1,7 @@
 /*jslint browser: true */
 /*global define */
 
-define(['vendors/cryptojs'], function (CryptoJS) {
+define(['vendor/cryptojs'], function (CryptoJS) {
     'use strict';
 
     var /**
@@ -10,20 +10,6 @@ define(['vendors/cryptojs'], function (CryptoJS) {
          *  @type {Number}
          */
         key_size = 96,
-
-        /**
-         *  Base du dernier hash généré.
-         *
-         *  @type {Number}
-         */
-        last_time = null,
-
-        /**
-         *  Dernier code retourné.
-         *
-         *  @type {String}
-         */
-        last_hash = null,
 
         /**
          *  Objet Otp
@@ -43,7 +29,7 @@ define(['vendors/cryptojs'], function (CryptoJS) {
             var time = Math.floor((new Date()) / 30000),   //  Unix timestamp / 30
                 hash = null;
 
-            if (last_time !== time) {
+            if (this.last_time !== time) {
                 hash = CryptoJS.HmacSHA512(
                     String(time),
                     this.secret
@@ -57,10 +43,10 @@ define(['vendors/cryptojs'], function (CryptoJS) {
                     hash.words.slice(hash.words.length - (key_size / 32))
                 );
 
-                last_time = time;
-                last_hash = hash;
+                this.last_time = time;
+                this.last_hash = hash;
             } else {
-                hash = last_hash;
+                hash = this.last_hash;
             }
 
             return raw ? hash : hash.toString(CryptoJS.enc.Base64);
@@ -82,9 +68,36 @@ define(['vendors/cryptojs'], function (CryptoJS) {
         }
 
         that = Object.create(Otp.prototype, {
+            /**
+             *  Clef de base des codes Otp
+             *
+             *  @type string
+             */
             secret: {
                 value: secret,
                 enumerable: false
+            },
+
+            /**
+             *  Base du dernier hash généré.
+             *
+             *  @type {Number}
+             */
+            last_time: {
+                value: null,
+                enumerable: false,
+                writable: true
+            },
+
+            /**
+             *  Dernier code retourné.
+             *
+             *  @type {String}
+             */
+            last_hash: {
+                value: null,
+                enumerable: false,
+                writable: true
             }
         });
 

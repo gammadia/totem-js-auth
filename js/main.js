@@ -6,16 +6,13 @@ require.config({
 
     config: {
         session: {
-            login_url:   'http://127.0.0.1:9999/session/login',
-            logout_url:   'http://127.0.0.1:9999/session/logout',
-            ping_url:   'http://127.0.0.1:9999/session/ping',
+            tipi_url:   'http://127.0.0.1:9999/',
             timeout:    1800    //  30 minutes
         }
     },
 
     paths: {
         app:        '../app',
-        vendors:    '../vendors',
         jquery:     '//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min'
     }
 });

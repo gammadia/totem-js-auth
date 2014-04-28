@@ -1,7 +1,7 @@
 /*jslint browser: true */
 /*global define */
 
-define(['bignum', 'vendors/cryptojs'], function (Bn, CryptoJS) {
+define(['bignum', 'vendor/cryptojs'], function (Bn, CryptoJS) {
     'use strict';
 
     /**
