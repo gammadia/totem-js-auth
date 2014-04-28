@@ -10,8 +10,7 @@
         <h1>Tipi</h1>
 
         <p>
-            Le code de démo se trouve dans <i>app/main.js</i>.<br />
-            La configuration du module est dans <i>js/main.js</i>.
+            Le code de démo se trouve dans <i>app/main.js</i>.
         </p>
         <p>
             <b>Liste des dépendances.</b>
@@ -20,13 +19,13 @@
                 <li><i>js/otp.js</i></li>
                 <li><i>js/session.js</i></li>
                 <li><i>js/srp.js</i></li>
-                <li><i>vendors/cryptojs.js</i></li>
             </ul>
         </p>
         <p>
             <b>Réfs</b><br />
-            <a href="http://en.wikipedia.org/wiki/Google_Authenticator#Pseudocode_for_Time_OTP">Pseudocode for Time OTP</a><br />
             <a href="http://tools.ietf.org/html/rfc5054">RFC5054 - Using the Secure Remote Password (SRP) Protocol for TLS Authentication</a><br />
+            <a href="http://tools.ietf.org/html/rfc6238">RFC6238 - TOTP: Time-Based One-Time Password Algorithm</a><br />
+            <a href="http://en.wikipedia.org/wiki/Google_Authenticator#Pseudocode_for_Time_OTP">Pseudocode for Time OTP</a><br />
             <a href="http://en.wikipedia.org/wiki/Secure_Remote_Password_protocol">Secure Remote Password protocol - Wikipedia</a><br />
             <a href="http://srp.stanford.edu/">The Stanford SRP Homepage</a><br />
         </p>
@@ -53,13 +52,6 @@
         <script>
             require.config({
                 baseUrl: 'lib',
-
-                config: {
-                    session: {
-                        tipi_url:   'http://127.0.0.1:9999/',
-                        timeout:    1800    //  30 minutes
-                    }
-                },
 
                 paths: {
                     app: '../app',
