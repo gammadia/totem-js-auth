@@ -1,303 +1,518 @@
-/*jslint browser: true, white: true */
+/*jslint browser: true */
 /*global define */
 
-define(['srp', 'module', 'vendors/cryptojs', 'jquery'], function (srp, module, CryptoJS, jQuery) {
-	'use strict';
+define(['srp', 'module', 'vendor/cryptojs', 'jquery', 'otp'], function (srp, module, CryptoJS, jQuery, Otp) {
+    'use strict';
 
-	var	/**
-		 *  Nombre maximal de tentatives avant d'abandoner.
-		 *  Utilisé pour le fix temporaire des erreures de la lib srp.
-		 *
-		 *  @type {Number}
-		 */
-		max_retries = 3,
+    var /**
+         *  Nombre maximal de tentatives avant d'abandoner.
+         *  Utilisé pour le fix temporaire des erreures de la lib srp.
+         *
+         *  @type {Number}
+         */
+        max_retries = 3,
 
-		/**
-		 *  Instance de session. (Singleton)
-		 *
-		 *  @type {Object}
-		 */
-		instance = null,
+        /**
+         *  Nom du scheme d'authentification HTTP à utiliser
+         *
+         *  @type {String}
+         */
+        auth_scheme = 'TIPI-TOKEN',
 
-		/**
-		 *  Objet de gestion de la session utilisateur. Singleton.
-		 *
-		 *  @type {Object}
-		 */
-		session = {};
+        /**
+         *  Nom du stockage dans le localstorage pour les données de sessions
+         *
+         *  @type {String}
+         */
+        store_key = 'tipi_session',
 
-	session.prototype = {
-		/**
-		 *  Créer une requête de session.
-		 *
-		 *  @returns {jQuery.Deferred} Objet de promesse jQuery
-		 */
-		make_request: function () {
-			var that = this;
+        /**
+         *  Objet d'interval de ping
+         *
+         *  @type {Object}
+         */
+        ping_interval = null,
 
-			this.promise = this.promise || jQuery.Deferred();
+        /**
+         *  Temp entre les pings de session
+         *
+         *  @type {Number}
+         */
+        ping_interval_time = 60 * 1000, //  60 sec
 
-			jQuery.post(
-				module.config().auth_url,
-				this.getRequest(),
-				this.getResponseHandler()
-			).fail(function (jqXHR) {
-				that.promise.reject();
-			});
+        /**
+         *  Instance de session. (Singleton)
+         *
+         *  @type {Object}
+         */
+        instance = null,
 
-			return this.promise.promise();
-		},
+        /**
+         *  Version de l'API à utiliser sur le serveur
+         *  ~2 = 2.*.*
+         *
+         *  @type {String}
+         */
+        api_version = '~2',
 
-		/**
-		 *  Créer une objet de données pour la requête d'authentification.
-		 *
-		 *  @returns {object} Objet à poster lors de la requête.
-		 */
-		getRequest: function () {
-			this.srp = srp.create(this.username, this.password);
+        /**
+         *  Objet de gestion de la session utilisateur. Singleton.
+         *
+         *  @type {Object}
+         */
+        session = {};
 
-			return {
-				username:	this.username,
-				A:			this.srp.getA().toString(16)
-			};
-		},
+    session.prototype = {
+        /**
+         *  Créer une requête de session.
+         *
+         *  @returns {jQuery.Deferred} Objet de promesse jQuery
+         */
+        make_request: function () {
+            var that = this;
 
-		/**
-		 *  Créer un handler pour le retour de la requête d'authentification.
-		 *
-		 *  @return {function} Fonction de gestion de la réponse.
-		 */
-		getResponseHandler: function () {
-			var that = this,
-				fn = function (data) {
-					if (typeof data !== 'object') {
-						data = jQuery.parseJSON(data);
-					}
+            this.promise = this.promise || jQuery.Deferred();
 
-					if (data.B !== undefined && data.s !== undefined) {
-						this.srp.setB(data.B);
-						this.srp.sets(data.s);
-						this.validateKey();
-					} else {
-						this.promise.reject();
-					}
-				};
+            jQuery.ajax(
+                module.config().tipi_url + 'session/login',
+                {
+                    type: 'POST',
+                    data: this.getRequest(),
+                    headers: {
+                        'Accept-Version': api_version
+                    }
+                }
+            ).done(
+                this.getResponseHandler()
+            ).fail(function () {
+                that.promise.reject();
+            });
 
-			return function (data) {
-				fn.apply(that, [data]);
-			};
-		},
+            return this.promise.promise();
+        },
 
-		/**
-		 *  Valide la clef retournée par le serveur.
-		 */
-		validateKey: function () {
-			var that = this;
+        /**
+         *  Créer une objet de données pour la requête d'authentification.
+         *
+         *  @returns {object} Objet à poster lors de la requête.
+         */
+        getRequest: function () {
+            this.srp = srp.create(this.username, this.password);
 
-			jQuery.post(
-				module.config().auth_url,
-				{
-					M1: this.srp.getM1().toString(16)
-				}
-			).done(function (data, textStatus) {
-				if (typeof data !== 'object') {
-					data = jQuery.parseJSON(data);
-				}
+            return {
+                username:   this.username,
+                A:          this.srp.getA().toString(16)
+            };
+        },
 
-				if (data.M2 && data.M2 === that.srp.getM2().toString(16)) {
-					that.session_success(data.sess_id);
-				} else {
-					that.retry();
-				}
-			}).fail(function (jqXHR) {
-				if (jqXHR.status === 400) {
-					that.retry();
-				}
+        /**
+         *  Créer un handler pour le retour de la requête d'authentification.
+         *
+         *  @return {function} Fonction de gestion de la réponse.
+         */
+        getResponseHandler: function () {
+            var that = this,
+                fn = function (data) {
+                    if (typeof data !== 'object') {
+                        data = jQuery.parseJSON(data);
+                    }
 
-				if (jqXHR.status === 404) {
-					that.promise.reject();
-				}
-			});
-		},
+                    if (data.B !== undefined && data.s !== undefined) {
+                        this.srp.setB(data.B);
+                        this.srp.sets(data.s);
+                        this.validateKey();
+                    } else {
+                        this.promise.reject();
+                        this.promise = null;
+                    }
+                };
 
-		/**
-		 *  La session a été établie avec success.
-		 *
-		 *  @param {String} id Id de session attribué par le serveur.
-		 */
-		session_success: function (id) {
-			this.sess_id = id;
+            return function (data) {
+                fn.apply(that, [data]);
+            };
+        },
 
-			//	Récupère la clef et nettoye l'objet srp.
-			this.key = this.srp.getK().toString(16);
-			delete this.srp;
+        /**
+         *  Valide la clef retournée par le serveur.
+         */
+        validateKey: function () {
+            var that = this;
 
-			this.valid_session = true;
+            jQuery.post(
+                module.config().tipi_url + 'session/login',
+                {
+                    M1: this.srp.getM1().toString(16)
+                }
+            ).done(function (data) {
+                if (typeof data !== 'object') {
+                    data = jQuery.parseJSON(data);
+                }
 
-			//this.updateCookie();
-			console.log(this.key);
+                if (data.M2 && data.M2 === that.srp.getM2().toString(16)) {
+                    that.session_success(data.sess_id);
+                } else {
+                    that.retry();
+                }
+            }).fail(function (jqXHR) {
+                if (jqXHR.status === 400) {
+                    that.retry();
+                }
 
-			this.promise.resolve();
-		},
+                if (jqXHR.status === 404) {
+                    that.promise.reject();
+                }
+            });
+        },
 
-		/**
-		 *  Mise à jour du cookie d'authentification.
-		 */
-		/*updateCookie: function () {
-			var token = this.generateToken();
+        /**
+         *  La session a été établie avec success.
+         *
+         *  @param {String} id Id de session attribué par le serveur.
+         */
+        session_success: function (id) {
+            //  Récupère la clef et nettoye l'objet srp.
+            this.key = this.srp.getK().toString(16);
+            this.sess_id = id;
+            delete this.srp;
 
-			if (token === null) {
-				this.cleanCookie();
-			}
+            this.touch();
+            this.persist();
+            this.startPing();
 
-			jQuery.cookie(
-				module.config().cookie.name,
-				token,
-				{
-					domain: module.config().cookie.domain,
-					path: module.config().cookie.path
-				}
-			);
-		},*/
+            this.promise.resolve();
+            this.promise = null;
+        },
 
-		/**
-		 *  Expire le cookie en cas d'expiration ou de problème de session.
-		 */
-		/*cleanCookie: function () {
-			jQuery.removeCookie(
-				module.config().cookie.name,
-				{
-					domain: module.config().cookie.domain,
-					path: module.config().cookie.path
-				}
-			);
+        /**
+         *  Écris la session dans le localStorage pour utilisation ultérieur.
+         */
+        persist: function () {
+            localStorage.setItem(
+                store_key,
+                JSON.stringify({
+                    user:   this.user,
+                    key:        this.key,
+                    sess_id:    this.sess_id,
+                    heartbeat:  this.heartbeat
+                })
+            );
+        },
 
-			this.valid_session = false;
-		},*/
+        /**
+         *  Création du générateur Otp
+         *
+         *  @returns {Otp}
+         */
+        getOtpGenerator: function () {
+            if (!this.generator) {
+                this.generator = Otp.create(this.key);
+            }
 
-		/**
-		 *  Génère un token d'authentification.
-		 *
-		 *  @returns {String} Jetton d'identification pour l'api.
-		 */
-		generateToken: function () {
-			var token = null;
+            return this.generator || null;
+        },
 
-			//	Pas de bras, pas de chocolat.
-			if (this.key !== undefined && this.sess_id !== undefined) {
-				token = [
-					(new Date()).toJSON(),
-					this.sess_id
-				];
+        /**
+         *  Génère un jetton d'authentification.
+         *
+         *  @returns {String} Jetton d'identification pour l'api.
+         */
+        getToken: function () {
+            var token = null;
 
-				token.unshift(
-					CryptoJS.enc.Hex.stringify(
-						CryptoJS.HmacSHA512(
-							token.join(),
-							CryptoJS.enc.Hex.parse(this.key)
-						)
-					)
-				);
+            //  Pas de bras, pas de chocolat.
+            if (this.isValid() && this.getOtpGenerator()) {
+                token = auth_scheme + ' sessid="';
 
-				token = CryptoJS.enc.Base64.stringify(
-					CryptoJS.enc.Utf8.parse(
-						JSON.stringify(token)
-					)
-				);
-			}
+                token += CryptoJS.enc.Base64.stringify(
+                    CryptoJS.enc.Hex.parse(this.sess_id)
+                );
 
-			return token;
-		},
+                token += '", sign="';
 
-		/**
-		 *  Es-ce que la session est valide?
-		 *
-		 *  @returns {Boolean} Vrais ou faux.
-		 */
-		isValid: function () {
-			return this.valid_session;
-		},
+                token += CryptoJS.enc.Base64.stringify(
+                    CryptoJS.HmacSHA256(
+                        this.sess_id,
+                        this.getOtpGenerator().getCode()
+                    )
+                );
 
-		/**
-		 *  Détruit la session en cours.
-		 */
-		destroy: function () {
-			//this.cleanCookie();
-		},
+                token += '"';
+            }
 
-		/**
-		 *  Relance la requête en cas d'échec. Il arrive que srp se broutte.
-		 */
-		retry: function () {
-			var that = this;
+            return token;
+        },
 
-			that.tries += 1;
+        /**
+         *  Es-ce que la session est valide?
+         *
+         *  @returns {Boolean} Vrais ou faux.
+         */
+        isValid: function () {
+            var valid = (this.heartbeat + module.config().timeout) > Math.floor((new Date()) / 1000);
 
-			if (that.tries >= max_retries) {
-				that.tries = 0;
-				that.promise.reject();
-			} else {
-				that.make_request();
-			}
-		},
+            if (!valid) {
+                this.destroy();
+            }
 
-		/**
-		 *  Initialise la session.
-		 *  Vérifie si un cookie existe déjà.
-		 */
-		init: function () {
-			//if (jQuery.cookie(module.config().cookie.name)) {
-			//	this.valid_session = true;
-			//}
-		}
-	};
+            return valid;
+        },
 
-	/**
-	 *  Création d'un nouvel objet de session pour le client.
-	 *
-	 *  @constructor
-	 *  @param {string} username Nom d'utilisateur (Identité)
-	 *  @param {string} password Mot de passe (Preuve de l'identité)
-	 */
-	session.create = function (username, password) {
-		instance = Object.create(session.prototype, {
-			username: {
-				value: username,
-				enumerable: false
-			},
-			password: {
-				value: password,
-				enumerable: false
-			},
-			tries: {
-				value: 0,
-				enumerable: false,
-				writable: true
-			},
-			onLoginSuccess: {
-				value: false,
-				enumerable: false,
-				writable: true
-			}
-		});
+        /**
+         *  Mise à jour du heartbeat de la session locale
+         */
+        touch: function () {
+            this.heartbeat = Math.floor((new Date()) / 1000);
+        },
 
-		instance.init();
+        /**
+         *  Démarre les pings de sessions sur le serveur
+         *
+         *  @see ping
+         */
+        startPing: function (immediate) {
+            var that = this;
 
-		return instance;
-	};
+            if (immediate) {
+                that.ping();
+            }
 
-	/**
-	 *  Retourne l'instance de session.
-	 *
-	 *  @returns {Object} La session
-	 */
-	session.getInstance = function () {
-		if (instance === null) {
-			instance = session.create();
-		}
+            if (ping_interval) {
+                window.clearInterval(ping_interval);
+            }
 
-		return instance;
-	};
+            ping_interval = window.setInterval(function () {
+                that.ping();
+            }, ping_interval_time);
+        },
 
-	return session;
+        /**
+         *  Ajout les informations d'identification à un objet de config jQuery.ajax.
+         *
+         *  jQuery.ajay(url, session.authentify({
+         *      type: 'POST',
+         *      data: {
+         *          key: 'value'
+         *      }
+         *  }));
+         *
+         *  @param   {Object} options Options de la requête ajax
+         *
+         *  @returns {Object}         Options avec les informations d'identification
+         */
+        authentify: function (options) {
+            options = options || {};
+            options.headers = options.headers || {};
+
+            options.headers.Authorization = this.getToken();
+            options.headers['Accept-Version'] = api_version;
+
+            return options;
+        },
+
+        /**
+         *  "Ping" la session sur le serveur.
+         *  Vérifie si elle est toujours valide et met à jour le timeout.
+         *
+         *  @returns {[type]} [description]
+         */
+        ping: function () {
+            var that = this;
+
+            jQuery.ajax(
+                module.config().tipi_url + 'session/ping',
+                this.authentify({
+                    type: 'POST',
+                    data: {
+                        timestamp: new Date()
+                    }
+                })
+            ).done(function (data) {
+                if (typeof data !== 'object') {
+                    data = jQuery.parseJSON(data);
+                }
+
+                if (data.success) {
+                    that.touch();
+                    that.persist();
+                } else {
+                    that.destroy();
+                }
+            }).fail(function () {
+                that.destroy();
+            });
+        },
+
+        /**
+         *  Déconnexion d'une session
+         *
+         *  @returns {[type]} [description]
+         */
+        logout: function () {
+            jQuery.ajax(
+                module.config().tipi_url + 'session/logout',
+                this.authentify({
+                    type: 'POST'
+                })
+            );
+
+            this.destroy();
+        },
+
+        /**
+         *  Détruit la session en cours.
+         */
+        destroy: function () {
+            if (ping_interval) {
+                window.clearInterval(ping_interval);
+            }
+
+            this.user = null;
+            this.key = null;
+            this.sess_id = null;
+            this.heartbeat = null;
+            this.generator = null;
+
+            this.persist();
+        },
+
+        /**
+         *  Relance la requête en cas d'échec. Il arrive que srp se broutte.
+         *
+         *  @todo Dû à un bug dans BigInt qui foire des soustractions.
+         */
+        retry: function () {
+            var that = this;
+
+            that.tries += 1;
+
+            if (that.tries >= max_retries) {
+                that.tries = 0;
+                that.promise.reject();
+            } else {
+                that.make_request();
+            }
+        },
+
+        /**
+         *  Initialise la session.
+         *  Vérifie si un cookie existe déjà.
+         */
+        init: function () {
+            var sess = JSON.parse(localStorage.getItem(store_key));
+
+            if (sess) {
+                this.user   = sess.user || null;
+                this.key        = sess.key || null;
+                this.sess_id    = sess.sess_id || null;
+                this.heartbeat  = sess.heartbeat || null;
+
+                if (this.isValid()) {
+                    this.startPing(true);
+                }
+            }
+        },
+
+        /**
+         *  Login d'un utilisateur pour créer une nouvelle session
+         *
+         *  @param   {String} username
+         *  @param   {String} password
+         *
+         *  @returns {jQuery.Deferred}          Promesse
+         */
+        login: function (username, password) {
+            this.username = username || '';
+            this.password = password || '';
+
+            //  Simplification du user, évite les fautes de frappes, majuscules, espaces, ponctuation, etc.
+            this.username = this.username.toLowerCase().replace(/[^a-zA-Z0-9]+/g, '');
+
+            this.destroy();
+
+            return this.make_request();
+        },
+
+        /**
+         *  Lecture des données de l'utilisateur
+         *
+         *  @param {String} namespace Nom du namespace voulu
+         *  @returns {Object} Données du namespace
+         */
+        getUserData: function (namespace) {
+            var promise = jQuery.Deferred();
+
+            if (!namespace) {
+                promise.reject(new Error('No namespace'));
+            }
+
+            jQuery.ajax(
+                module.config().tipi_url + 'users/data/' + namespace,
+                this.authentify()
+            ).done(function (data) {
+                if (typeof data !== 'object') {
+                    data = jQuery.parseJSON(data);
+                }
+
+                promise.resolve(data);
+            }).fail(function () {
+                promise.reject(new Error('Unable to get data'));
+            });
+
+            return promise.promise();
+        }
+    };
+
+    /**
+     *  Création d'un nouvel objet de session pour le client.
+     *
+     *  @constructor
+     */
+    function create_session() {
+        instance = Object.create(session.prototype, {
+            user: {
+                value: null,
+                enumerable: false,
+                writable: true
+            },
+            password: {
+                value: null,
+                enumerable: false,
+                writable: true
+            },
+            tries: {
+                value: 0,
+                enumerable: false,
+                writable: true
+            },
+            sess_id: {
+                value: null,
+                enumerable: false,
+                writable: true
+            },
+            generator: {
+                value: null,
+                enumerable: false,
+                writable: true
+            }
+        });
+
+        instance.init();
+
+        return instance;
+    }
+
+    /**
+     *  Retourne l'instance de session.
+     *
+     *  @returns {Object} La session
+     */
+    session.getInstance = function () {
+        if (instance === null) {
+            instance = create_session();
+        }
+
+        return instance;
+    };
+
+    return session;
 });
