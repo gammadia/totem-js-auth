@@ -67,9 +67,10 @@
 
                 shim: {
                     'cryptojs.core':       {exports: 'CryptoJS'},
+                    'cryptojs.x64-core':   {exports: 'CryptoJS', deps: ['cryptojs.core']},
                     'cryptojs.sha1':       {exports: 'CryptoJS', deps: ['cryptojs.core']},
                     'cryptojs.sha256':     {exports: 'CryptoJS', deps: ['cryptojs.core']},
-                    'cryptojs.sha512':     {exports: 'CryptoJS', deps: ['cryptojs.core', 'cryptojs.x64-core']},
+                    'cryptojs.sha512':     {exports: 'CryptoJS', deps: ['cryptojs.x64-core']},
                     'cryptojs.hmac':       {exports: 'CryptoJS', deps: ['cryptojs.core']},
                     'cryptojs.enc-base64': {exports: 'CryptoJS', deps: ['cryptojs.core']},
                 }
