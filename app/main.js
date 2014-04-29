@@ -4,6 +4,12 @@
 define(['jquery', 'session'], function (jQuery, Session) {
     'use strict';
 
+    Session.setConfig({
+        tipi_url:   'http://127.0.0.1:9999/',
+        timeout:    1800,   //  30 minutes
+        namespace:  'mooncare'
+    });
+
     var session = Session.getInstance(),
 
         dump_status = function () {
