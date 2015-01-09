@@ -15,7 +15,6 @@
         <p>
             <b>Liste des dépendances.</b>
             <ul>
-                <li><i>js/bignum.js</i></li>
                 <li><i>js/otp.js</i></li>
                 <li><i>js/session.js</i></li>
                 <li><i>js/srp.js</i></li>
@@ -48,13 +47,13 @@
 
         <pre style="border: 1px solid black;" id ="box_status"></pre>
 
-        <script src="lib/vendors/requirejs/require.js"></script>
+        <script src="../lib/vendors/requirejs/require.js"></script>
         <script>
             require.config({
-                baseUrl: 'lib',
+                baseUrl: '../lib',
 
                 paths: {
-                    app: '../app',
+                    app: '../demo/app/',
                     jquery:                'vendors/jquery/dist/jquery',
                     'cryptojs.core':       'vendors/crypto-js/components/core',
                     'cryptojs.x64-core':   'vendors/crypto-js/components/x64-core',

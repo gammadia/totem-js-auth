@@ -1,0 +1,12 @@
+{
+    "name": "tipi-auth",
+    "description": "Module d'authentification Tipi",
+    "version": "2.0.0",
+    "devDependencies": {
+        "mocha": "*",
+        "should": "*"
+    },
+    "scripts": {
+        "test": "node_modules/.bin/mocha -w"
+    }
+}
