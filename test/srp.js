@@ -4,11 +4,13 @@
 describe('Srp', function () {
     'use strict';
 
-    var Srp = null;
+    var Srp = null,
+        Bn = null;
 
     before(function (done) {
-        require(['srp'], function (srp) {
+        require(['srp', 'bignum'], function (srp, bn) {
             Srp = srp;
+            Bn = bn;
             return done();
         });
     });
@@ -39,6 +41,56 @@ describe('Srp', function () {
             x = srp.getx().toString(16);
             x.should.be.exactly('7b549517a6796961e6fa7b5817b11baf3ed27f10');
         });
+
+        it('should not fail on low A values', function () {
+            var srp = new Srp('alice', 'password123'),
+                u = null;
+
+            srp.should.be.type('object');
+            srp.a = Bn.create('20a39edf45b1e71d0ad458e9f4ca8aa63a94f90f7c2719c7bc979d7b419f4ae1c28bec1d7ec48c181c9716691322290b', 16);
+            srp.B = Bn.create('d7ef5330d1c87e72925de171e376d304f6ff2ff1520280ffb22cbcc373707233c676c87a53ae302f33b611616ff055cd0257e8179bdd6327283f9a269341d05492579acb0f505d9fb8bf5478dc229bc1b134b107c3b3e1717667ebfb6245017714d1cdb713e9d1d1491d7c11e53c8d3c3f9bfd53a80bf3c882ba8037eb5e2be0', 16);
+
+            u = srp.getu().toString(16);
+            u.should.be.exactly('583ab26a5a8722dd8ecb8d9aed5a83073cd381db');
+        });
+
+        it('should not fail on low B values', function () {
+            var srp = new Srp('alice', 'password123'),
+                u = null;
+
+            srp.should.be.type('object');
+            srp.a = Bn.create('db62e1bc728b4e8117a24fa6a3e3cdea27445be6588c52623deec77e04bb99574bf3a59dd568708c1b5340578d12d54e', 16);
+            srp.B = Bn.create('08919ef90628ac5f5426d5456a0deb522681254430778b0476ea8beade68ff6ca2ffab461d9a07d2f8007a04d744c0a04b55dcfbb460095e24fe4a2846ceafe0f2141e42fad7abef17fee59ba3bdd80be8b5e79932caf5f614ef5dfdc7fabdb25b4c08da266d79532b11d5edad1f59326e1ba54d7fd952b5e243478f2f8bc714', 16);
+
+            u = srp.getu().toString(16);
+            u.should.be.exactly('a2f3dff413976f7098a1cbbe829322c99a9728f3');
+        });
+
+        it('should not fail on low M1 values', function () {
+            var srp = new Srp('alice', 'password123'),
+                M2 = null;
+
+            srp.should.be.type('object');
+            srp.a = Bn.create('d19a615d7479241ec699c86cd368a34e6b48cb3113fe168404799c16f52a461b32acd2b696ef778c03d9bfdc82838025', 16);
+            srp.B = Bn.create('abf58446bb090f8917bec9aa603763de7fa86412bb05e993edb910479f33d1daae27e1d23b6411e511708838598a1754137d34e812499a19c569ed6aa45f95af370f186a3495cdbd54363ce40fd893db3f314c5738d6571779d4e11ac76753b150900e208ba6e7c3c99646904e64f519e6814961a079ac9e4f0b6c087efcb9c4', 16);
+            srp.s = Bn.create('beb25379d1a8581eb5a727673a2441ee', 16);
+
+            M2 = srp.getM2().toString(16);
+            M2.should.be.exactly('bda9a2d428e21469fe778d191f7cb89cfd37659b');
+        });
+
+        it('should not fail on low S values', function () {
+            var srp = new Srp('alice', 'password123'),
+                K = null;
+
+            srp.should.be.type('object');
+            srp.a = Bn.create('8feb18b5e48071e659bcb12719ee29a4c8c6a8c327eca5371bbc23de5c745422b873f4859962da9f94b5ad460323acc8', 16);
+            srp.B = Bn.create('51f76155db529562760031cdecc221b755a5fddbb148b3e7f8219e6ee0d5107a502b9a71f3111b2f11ee2db969445c232a723d98340e9d810d0053b32a57ad6043035428f0887e765269ba7ed62d28d819037b43845e33ad04057dff38190ec591023857d269e31af56ac6ffe23f5c59e00a622c5948883b56339068c601e1b6', 16);
+            srp.s = Bn.create('beb25379d1a8581eb5a727673a2441ee', 16);
+
+            K = srp.getK().toString(16);
+            K.should.be.exactly('c94d951673e3bfd4202ff2087a867438a28a7e3888de4b95d588569807e39a9be18101c741e2c0830cc088f35a2cc997d645ccbdd7602799fd0f78c5e6ca7fe6');
+        });
     });
 
     describe('RFC5054 Test Vectors', function () {
@@ -50,13 +102,9 @@ describe('Srp', function () {
         });
 
         it('should set test values', function () {
-            srp.rfc5054seta();
+            srp.a = Bn.create('60975527035cf2ad1989806f0407210bc81edc04e2762a56afd529ddda2d4393', 16);
             srp.setB(
-                'bd0c6151' + '2c692c0c' + 'b6d041fa' + '01bb152d' + '4916a1e7' + '7af46ae1' + '05393011' +
-                    'baf38964' + 'dc46a067' + '0dd125b9' + '5a981652' + '236f99d9' + 'b681cbf8' + '7837ec99' +
-                    '6c6da044' + '53728610' + 'd0c6ddb5' + '8b318885' + 'd7d82c7f' + '8deb75ce' + '7bd4fbaa' +
-                    '37089e6f' + '9c6059f3' + '88838e7a' + '00030b33' + '1eb76840' + '910440b1' + 'b27aaeae' +
-                    'eb4012b7' + 'd7665238' + 'a8e3fb00' + '4b117b58'
+                'bd0c61512c692c0cb6d041fa01bb152d4916a1e77af46ae105393011baf38964dc46a0670dd125b95a981652236f99d9b681cbf87837ec996c6da04453728610d0c6ddb58b318885d7d82c7f8deb75ce7bd4fbaa37089e6f9c6059f388838e7a00030b331eb76840910440b1b27aaeaeeb4012b7d7665238a8e3fb004b117b58'
             );
             srp.sets('beb25379d1a8581eb5a727673a2441ee');
         });
@@ -64,11 +112,7 @@ describe('Srp', function () {
         it('A = g^a', function () {
             var A = srp.getA().toString(16);
             A.should.be.exactly(
-                '61d5e490' + 'f6f1b795' + '47b0704c' + '436f523d' + 'd0e560f0' + 'c64115bb' + '72557ec4' +
-                    '4352e890' + '3211c046' + '92272d8b' + '2d1a5358' + 'a2cf1b6e' + '0bfcf99f' + '921530ec' +
-                    '8e393561' + '79eae45e' + '42ba92ae' + 'aced8251' + '71e1e8b9' + 'af6d9c03' + 'e1327f44' +
-                    'be087ef0' + '6530e69f' + '66615261' + 'eef54073' + 'ca11cf58' + '58f0edfd' + 'fe15efea' +
-                    'b349ef5d' + '76988a36' + '72fac47b' + '0769447b'
+                '61d5e490f6f1b79547b0704c436f523dd0e560f0c64115bb72557ec44352e8903211c04692272d8b2d1a5358a2cf1b6e0bfcf99f921530ec8e39356179eae45e42ba92aeaced825171e1e8b9af6d9c03e1327f44be087ef06530e69f66615261eef54073ca11cf5858f0edfdfe15efeab349ef5d76988a3672fac47b0769447b'
             );
         });
 
@@ -77,14 +121,10 @@ describe('Srp', function () {
             x.should.be.exactly('94b7555aabe9127cc58ccf4993db6cf84d16c124');
         });
 
-        it('S = (B - kg ** x) ** a + ux', function () {
+        it('S = (B - kg ** x) ** x', function () {
             var S = srp.getS().toString(16);
             S.should.be.exactly(
-                'b0dc82ba' + 'bcf30674' + 'ae450c02' + '87745e79' + '90a3381f' + '63b387aa' + 'f271a10d' +
-                    '233861e3' + '59b48220' + 'f7c4693c' + '9ae12b0a' + '6f67809f' + '0876e2d0' + '13800d6c' +
-                    '41bb59b6' + 'd5979b5c' + '00a172b4' + 'a2a5903a' + '0bdcaf8a' + '709585eb' + '2afafa8f' +
-                    '3499b200' + '210dcc1f' + '10eb3394' + '3cd67fc8' + '8a2f39a4' + 'be5bec4e' + 'c0a3212d' +
-                    'c346d7e4' + '74b29ede' + '8a469ffe' + 'ca686e5a'
+                'b0dc82babcf30674ae450c0287745e7990a3381f63b387aaf271a10d233861e359b48220f7c4693c9ae12b0a6f67809f0876e2d013800d6c41bb59b6d5979b5c00a172b4a2a5903a0bdcaf8a709585eb2afafa8f3499b200210dcc1f10eb33943cd67fc88a2f39a4be5bec4ec0a3212dc346d7e474b29ede8a469ffeca686e5a'
             );
         });
 

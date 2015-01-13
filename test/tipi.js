@@ -35,7 +35,7 @@ describe('Tipi', function () {
                     data: {
                         username:   srp.username,
                         namespace:  config.namespace,
-                        A:          srp.getA().toString(16)
+                        A:          srp.getAString()
                     },
                     headers: {
                         'Accept-Version': '2'
@@ -65,11 +65,11 @@ describe('Tipi', function () {
         it('should confirm exchange with M1 and M2', function (done) {
             jQuery.post(
                 config.tipi_url + 'session/login',
-                { M1: srp.getM1().toString(16) }
+                { M1: srp.getM1String() }
             ).done(function (data) {
                 data.should.be.type('object');
                 data.M2.should.be.ok;
-                data.M2.should.be.exactly(srp.getM2().toString(16));
+                data.M2.should.be.exactly(srp.getM2String());
                 done();
             }).fail(function (jqXHR) {
                 jqXHR.status.should.not.be.exactly(400);
