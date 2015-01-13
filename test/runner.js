@@ -82,7 +82,8 @@ require(['mocha', 'blanket', 'should'], function (mocha, blanket) {
 
     require([
         'test/srp',
-        'test/session'
+        'test/session',
+        'test/tipi'
     ], function () {
         mocha.checkLeaks();
         mocha.run();

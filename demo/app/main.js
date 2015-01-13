@@ -7,7 +7,7 @@ define(['jquery', 'session'], function (jQuery, Session) {
     Session.setConfig({
         tipi_url:   'http://127.0.0.1:9999/',
         timeout:    1800,   //  30 minutes
-        namespace:  'mooncare'
+        namespace:  'unittest'
     });
 
     var session = Session.getInstance(),
