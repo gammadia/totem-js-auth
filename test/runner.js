@@ -49,7 +49,6 @@ require(['mocha', 'blanket', 'should'], function (mocha, blanket) {
     mocha.setup('bdd');
     blanket.options('filter', /lib\/(srp|otp|session)/);
     blanket.options('antifilter', /lib\/vendors/);
-    blanket.options('debug', true);
 
     var OriginalReporter = mocha._reporter;
 
