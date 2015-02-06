@@ -46,9 +46,15 @@ require.config({
 require(['mocha', 'blanket', 'should'], function (mocha, blanket) {
     'use strict';
 
-    mocha.setup('bdd');
+    mocha.setup({
+        ui: 'bdd',
+        timeout: 20000,
+        bail: true
+    });
+
     blanket.options('filter', /lib\/(srp|otp|session)/);
-    blanket.options('antifilter', /lib\/vendors/);
+    //blanket.options('filter', /lib\/[a-z]+/i);
+    blanket.options('antifilter', /lib\/vendors/i);
 
     var OriginalReporter = mocha._reporter;
 
