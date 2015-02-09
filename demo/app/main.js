@@ -1,5 +1,5 @@
 /*jslint browser: true */
-/*global define, console */
+/*global define, require, console */
 
 define(['jquery', 'session'], function (jQuery, Session) {
     'use strict';
@@ -115,5 +115,10 @@ define(['jquery', 'session'], function (jQuery, Session) {
             });
         });
 
+        jQuery('#btn_siege').click(function () {
+            require(['../demo/app/siege'], function (siege) {
+                siege(jQuery('input[name="input_siege"]').val());
+            });
+        });
     });
 });

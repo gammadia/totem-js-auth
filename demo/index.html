@@ -45,6 +45,11 @@
             <input type="button" value="Read data (remote)" id="btn_data_remote" />
         </div>
 
+        <div>
+            <input type="button" value="Test de charge" id="btn_siege" />
+            <input type="text" name="input_siege" id="input_siege" value="100" size="4" />Connexions
+        </div>
+
         <pre style="border: 1px solid black;" id ="box_status"></pre>
 
         <script src="../lib/vendors/requirejs/require.js"></script>
@@ -55,6 +60,7 @@
                 paths: {
                     app: '../demo/app/',
                     jquery:                'vendors/jquery/dist/jquery',
+                    async:                 'vendors/async/lib/async',
                     'cryptojs.core':       'vendors/crypto-js/components/core',
                     'cryptojs.x64-core':   'vendors/crypto-js/components/x64-core',
                     'cryptojs.sha1':       'vendors/crypto-js/components/sha1',

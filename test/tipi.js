@@ -1,6 +1,9 @@
 /*jslint browser: true */
 /*global describe, it, before, require */
 
+/*(function run() {
+    'use strict';
+*/
 describe('Tipi', function () {
     'use strict';
 
@@ -78,4 +81,10 @@ describe('Tipi', function () {
             });
         });
     });
+/*
+    after(function () {
+        run();
+    });*/
 });
+
+//}());

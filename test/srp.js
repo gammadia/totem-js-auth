@@ -72,7 +72,7 @@ describe('Srp', function () {
         });
 
         it('K = SHA512(S)', function () {
-            var K = srp.getK().toString(16);
+            var K = srp.getK();
             K.should.be.exactly('eb86bd35f055213d911e74ba485d516d2c7d648eca4fd7c4fd474cf9fff1d3a8b0efcb6bc0f2b07530bd02d6ea12f85f550b136958f783e4b84d47f727ae4b23');
         });
     });
