@@ -1,5 +1,5 @@
 /*jslint browser: true */
-/*global define, console */
+/*global define, require, console */
 
 define(['jquery', 'session'], function (jQuery, Session) {
     'use strict';
@@ -7,7 +7,7 @@ define(['jquery', 'session'], function (jQuery, Session) {
     Session.setConfig({
         tipi_url:   'http://127.0.0.1:9999/',
         timeout:    1800,   //  30 minutes
-        namespace:  'mooncare'
+        namespace:  'unittest'
     });
 
     var session = Session.getInstance(),
@@ -115,5 +115,10 @@ define(['jquery', 'session'], function (jQuery, Session) {
             });
         });
 
+        jQuery('#btn_siege').click(function () {
+            require(['../demo/app/siege'], function (siege) {
+                siege(jQuery('input[name="input_siege"]').val());
+            });
+        });
     });
 });

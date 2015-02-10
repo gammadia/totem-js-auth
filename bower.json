@@ -1,17 +1,24 @@
 {
-    "name": "gammadia/tipi-auth",
-    "description": "Module d'authentification Tipi",
-    "version": "0.1.0",
-    "main": "lib/session.js",
-    "dependencies": {
-        "requirejs": "2.*",
-        "jquery": "1.*",
-        "crypto-js": "https://crypto-js.googlecode.com/files/CryptoJS%20v3.1.2.zip"
-    },
-    "ignore": [
-        "app/main.js",
-        "demo.html",
-        "readme.md"
-    ],
-    "private": true
+  "name": "gammadia/tipi-auth",
+  "description": "Module d'authentification Tipi",
+  "version": "2.0.0",
+  "main": "lib/session.js",
+  "dependencies": {
+    "requirejs": "2.*",
+    "jquery": "2.1.*",
+    "crypto-js": "https://crypto-js.googlecode.com/files/CryptoJS%20v3.1.2.zip",
+    "bignumber.js": "2.0.*"
+  },
+  "ignore": [
+    "app/main.js",
+    "demo.html",
+    "readme.md"
+  ],
+  "private": true,
+  "devDependencies": {
+    "mocha": "~2.1.0",
+    "should": "~4.4.4",
+    "blanket": "~1.1.5",
+    "async": "~0.9"
+  }
 }
