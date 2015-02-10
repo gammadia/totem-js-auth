@@ -5,13 +5,12 @@
   "main": "lib/session.js",
   "dependencies": {
     "requirejs": "2.*",
-    "jquery": "2.1.*",
-    "crypto-js": "https://crypto-js.googlecode.com/files/CryptoJS%20v3.1.2.zip",
-    "bignumber.js": "2.0.*"
+    "jquery": "1.*",
+    "crypto-js": "https://crypto-js.googlecode.com/files/CryptoJS%20v3.1.2.zip"
   },
   "ignore": [
-    "app/main.js",
-    "demo.html",
+    "demo/*",
+    "test/*",
     "readme.md"
   ],
   "private": true,
