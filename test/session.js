@@ -51,6 +51,18 @@ describe('Session', function () {
             session_data.sess_id.should.be.type('string');
         });
 
+        it('should resume session from localStorage', function () {
+            var session_data = JSON.parse(localStorage.tipi_session);
+
+            session = Session.getInstance(true);
+            session.should.be.type('object');
+
+            session.key.should.equal(session_data.key);
+            session.sess_id.should.equal(session_data.sess_id);
+
+            session.isValid().should.be.true;
+        });
+
         it('session.logout() should destroy session on logout', function () {
             session.logout();
 
@@ -275,6 +287,37 @@ describe('Session', function () {
 
         it('session.getUserData() should fail with no namespace', function (done) {
             session.getUserData().done(function () {
+                (1 === 2).should.be.true;
+                done();
+            }).fail(function (error) {
+                error.should.be.instanceOf(Error);
+                error.message.should.equal('No namespace');
+                done();
+            });
+        });
+
+        it('session.setUserData() should write user data', function (done) {
+            var canary_value = Date.now();
+
+            session.getUserData('unittest').done(function (data) {
+                data.write_canary = canary_value;
+
+                session.setUserData('unittest', data).done(function (data) {
+                    data.data.should.be.type('object');
+                    data.data.should.have.property('write_canary', canary_value);
+                    done();
+                }).fail(function () {
+                    (1 === 2).should.be.true;
+                    done();
+                });
+            }).fail(function () {
+                (1 === 2).should.be.true;
+                done();
+            });
+        });
+
+        it('session.setUserData() should fail with no namespace', function (done) {
+            session.setUserData().done(function () {
                 (1 === 2).should.be.true;
                 done();
             }).fail(function (error) {
