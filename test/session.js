@@ -197,6 +197,12 @@ describe('Session', function () {
                 done();
             });
         });
+
+        it('session.authentifyUrl() should add token to url', function () {
+            session.key = '252d474dc90cea84b7facd3954f610fe5057d369c18a8353b94532b6c34c8eace25604c3df1a9dec8d6e38a2275ce0a00258b06662bf84ef26636d4470cc30ff';
+            var url = session.authentifyUrl('http://exemple.com/test.jpg');
+            url.should.equal('http://exemple.com/test.jpg?token=vHpn/Xe7OSCUvZmrhji5G7Z1gjYMp1OnwFiqv07tnPQ=');
+        });
     });
 
     describe('Ping', function () {
