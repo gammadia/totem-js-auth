@@ -51,6 +51,18 @@ describe('Session', function () {
             session_data.sess_id.should.be.type('string');
         });
 
+        it('should resume session from localStorage', function () {
+            var session_data = JSON.parse(localStorage.tipi_session);
+
+            session = Session.getInstance(true);
+            session.should.be.type('object');
+
+            session.key.should.equal(session_data.key);
+            session.sess_id.should.equal(session_data.sess_id);
+
+            session.isValid().should.be.true;
+        });
+
         it('session.logout() should destroy session on logout', function () {
             session.logout();
 
@@ -185,6 +197,12 @@ describe('Session', function () {
                 done();
             });
         });
+
+        it('session.authentifyUrl() should add token to url', function () {
+            session.key = '252d474dc90cea84b7facd3954f610fe5057d369c18a8353b94532b6c34c8eace25604c3df1a9dec8d6e38a2275ce0a00258b06662bf84ef26636d4470cc30ff';
+            var url = session.authentifyUrl('http://exemple.com/test.jpg');
+            url.should.equal('http://exemple.com/test.jpg?token=vHpn/Xe7OSCUvZmrhji5G7Z1gjYMp1OnwFiqv07tnPQ=');
+        });
     });
 
     describe('Ping', function () {
@@ -275,6 +293,37 @@ describe('Session', function () {
 
         it('session.getUserData() should fail with no namespace', function (done) {
             session.getUserData().done(function () {
+                (1 === 2).should.be.true;
+                done();
+            }).fail(function (error) {
+                error.should.be.instanceOf(Error);
+                error.message.should.equal('No namespace');
+                done();
+            });
+        });
+
+        it('session.setUserData() should write user data', function (done) {
+            var canary_value = Date.now();
+
+            session.getUserData('unittest').done(function (data) {
+                data.write_canary = canary_value;
+
+                session.setUserData('unittest', data).done(function (data) {
+                    data.data.should.be.type('object');
+                    data.data.should.have.property('write_canary', canary_value);
+                    done();
+                }).fail(function () {
+                    (1 === 2).should.be.true;
+                    done();
+                });
+            }).fail(function () {
+                (1 === 2).should.be.true;
+                done();
+            });
+        });
+
+        it('session.setUserData() should fail with no namespace', function (done) {
+            session.setUserData().done(function () {
                 (1 === 2).should.be.true;
                 done();
             }).fail(function (error) {
