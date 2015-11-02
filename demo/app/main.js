@@ -1,10 +1,11 @@
 /*jslint browser: true */
 /*global define, require, console */
 
-define(['jquery', 'session'], function (jQuery, Session) {
+define(['jquery', 'session', 'async'], function (jQuery, Session, async) {
     'use strict';
 
     var session = Session.getInstance(),
+        siege_running = false,
 
         config_session = function () {
             if (!jQuery('#tipi_url').val() || !jQuery('#tipi_namespace').val() || !jQuery('#tipi_timeout').val()) {
@@ -31,22 +32,99 @@ define(['jquery', 'session'], function (jQuery, Session) {
             jQuery('#btn_data').prop('disabled', !session_valid);
             jQuery('#btn_data_remote').prop('disabled', !session_valid);
 
-            if (!tipi_session) {
-                jQuery('#box_status').html('Pas de session');
-            } else {
-                if (session_valid) {
-                    tipi_session = JSON.parse(tipi_session);
-                    jQuery('#box_status').html(
-                        'user: ' + (tipi_session.user || '') + "\n" +
-                            'key: ' + (tipi_session.key || '') + "\n" +
-                            'sess_id: ' + (tipi_session.sess_id || '') + "\n" +
-                            'heartbeat: ' + (new Date(tipi_session.heartbeat * 1000) || '') + "\n" +
-                            'valid: ' + (session.isValid() ? 'true' : 'false')
-                    );
+            if (!siege_running) {
+                if (!tipi_session) {
+                    jQuery('#box_status').html('Pas de session');
                 } else {
-                    jQuery('#box_status').html('Session non valide');
+                    if (session_valid) {
+                        tipi_session = JSON.parse(tipi_session);
+                        jQuery('#box_status').html(
+                            'user: ' + (tipi_session.user || '') + "\n" +
+                                'key: ' + (tipi_session.key || '') + "\n" +
+                                'sess_id: ' + (tipi_session.sess_id || '') + "\n" +
+                                'heartbeat: ' + (new Date(tipi_session.heartbeat * 1000) || '') + "\n" +
+                                'valid: ' + (session.isValid() ? 'true' : 'false')
+                        );
+                    } else {
+                        jQuery('#box_status').html('Session non valide');
+                    }
                 }
             }
+        },
+
+        create_session = function () {
+            var sess = Object.create(Session.prototype, {
+                user: {
+                    value: null,
+                    enumerable: false,
+                    writable: true
+                },
+                password: {
+                    value: null,
+                    enumerable: false,
+                    writable: true
+                },
+                sess_id: {
+                    value: null,
+                    enumerable: false,
+                    writable: true
+                },
+                generator: {
+                    value: null,
+                    enumerable: false,
+                    writable: true
+                }
+            });
+            sess.persist = function () { return; };
+            return sess;
+        },
+
+        siege = function (limit) {
+            siege_running = true;
+            var valid_session_count = 0;
+            async.timesSeries(limit, function (n, next) {
+                jQuery('#box_status').append('Create session #' + n + '/' + limit + '... ');
+
+                var sess = create_session();
+                sess.login(
+                    jQuery('input[name="input_username"]').val(),
+                    jQuery('input[name="input_password"]').val()
+                )
+                    .done(function () {
+                        jQuery('#box_status').append(' Done.\n');
+                        if (sess.isValid()) {
+                            valid_session_count += 1;
+                        } else {
+                            jQuery('#box_status').append('/!\\INVALID SESSION/!\\ \n');
+                        }
+                        next(null, sess);
+                    }).fail(function (err) {
+                        jQuery('#box_status').append(' Failed!\n');
+                        next(err);
+                    });
+            }, function (err, sessions) {
+                if (err) {
+                    return jQuery('#box_status').append('ERROR: \n ' + err);
+                }
+                jQuery('#box_status').append('Done (valid): ' + valid_session_count + '\n');
+                jQuery('#box_status').append('Total: ' + sessions.length + ' \n');
+
+                var valid_sessions = 0;
+                async.eachSeries(sessions, function (sess, next) {
+                    if (sess.isValid()) {
+                        valid_sessions += 1;
+                        jQuery('#box_status').append('Logging out session #' + valid_sessions + ' \n');
+                        sess.logout();
+                        next(null, sess);
+                    }
+                }, function (err, sessions) {
+                    if (err) {
+                        return jQuery('#box_status').append('ERROR: \n ' + err);
+                    }
+                    jQuery('#box_status').append('Still valid sessions: ' + valid_sessions + '\n');
+                    jQuery('#box_status').append('Total: ' + sessions.length + ' \n');
+                });
+            });
         };
 
     jQuery(document).ready(function () {
@@ -58,6 +136,7 @@ define(['jquery', 'session'], function (jQuery, Session) {
          * Login
          */
         jQuery('#btn_login').click(function () {
+            siege_running = false;
             if (config_session()) {
                 session.login(
                     jQuery('input[name="input_username"]').val(),
@@ -75,6 +154,7 @@ define(['jquery', 'session'], function (jQuery, Session) {
          */
         jQuery('#btn_logout').click(function () {
             session.logout();
+            siege_running = false;
             dump_status();
         });
 
@@ -82,13 +162,14 @@ define(['jquery', 'session'], function (jQuery, Session) {
          *  Lecture des données de l'utilisateur dans Tipi
          */
         jQuery('#btn_data').click(function () {
+            siege_running = false;
             /**
              *  Namespace donné pour la lecture des données, obligatoire
              *  Seulement la partie 'user_data' du namespace arrive à l'utilisateur.
              *  Le reste n'est accessible que depuis les applications serveur. (Forum, Tisserin, etc.)
              */
             session.getUserData(
-                jQuery('input[name="input_namespace"]').val()
+                jQuery('#tipi_namespace').val()
             ).done(function (data) {
                 console.dir(data);
             }).fail(function (err) {
@@ -117,9 +198,9 @@ define(['jquery', 'session'], function (jQuery, Session) {
         });
 
         jQuery('#btn_siege').click(function () {
-            require(['../demo/app/siege'], function (siege) {
+            if (config_session()) {
                 siege(jQuery('input[name="input_siege"]').val());
-            });
+            }
         });
     });
 });
