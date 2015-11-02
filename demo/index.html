@@ -7,50 +7,84 @@
     </head>
 
     <body>
-        <h1>Tipi</h1>
+        <pre>
+                                                   ____  ____  ____  ____
+                                                  (_  _)(_  _)(  _ \(_  _)
+                 `_ ,                               )(   _)(_  )___/ _)(_
+       |        -(_)-                              (__) (____)(__)  (____)
+      \|/        ,  `
+       ^
+      / \                                                    \\
+     /   \                                                    \\_   \\
+    / /|  \                                                    (')   \\_
+   / /\|   \                                                  / )=.---(')
+_-/_/ _\7___\_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_o( )o( )_-\_
+        </pre>
 
         <p>
             Le code de démo se trouve dans <i>app/main.js</i>.
         </p>
+
+        <h2>Configuration :</h2>
+        <div>
+            <p>Veuillez entrer l'url de votre instance Tipi (en précisant le port)</p>
+            <label for="tipi_url">URL : </label>
+            <input type="text" id="tipi_url" placeholder="http://127.0.0.1:9999"/>
+            <label for="tipi_namespace">Namespace : </label>
+            <input type="text" id="tipi_namespace" placeholder="forum/gammadia"/>
+            <label for="tipi_timeout">Timeout (ms) : </label>
+            <input type="text" id="tipi_timeout" value="1800"/>
+        </div>
+
+        <h2>Tests</h2>
+        <p>Les résultats des tests sont visibles dans la partie status</p>
+        <div>
+            <h3>Test de login :</h3>
+            <label for="input_username">Username : </label>
+            <input type="text" name="input_username" id="input_username" />
+            <label for="input_password">Password : </label>
+            <input type="password" name="input_password" id="input_password" />
+            <input type="button" value="Login" id="btn_login" />
+            <input type="button" value="Logout" id="btn_logout" />
+        </div>
+
+        <div>
+            <h3>Lecture des données du namespace :</h3>
+            <input type="button" value="Read data" id="btn_data" />
+        </div>
+
+        <div>
+            <h3>Test de montée en charge :</h3>
+            <label for="input_siege">Nombre de connexion en parallèle : </label>
+            <input type="text" name="input_siege" id="input_siege" value="100" size="4" />
+            <input type="button" value="Test de charge" id="btn_siege" />
+        </div>
+
+        <hr>
+        <h2>Status : </h2>
+        <pre style="border: 1px solid black;" id ="box_status"></pre>
+
+        <hr>
+
+        <h2>Infos : </h2>
         <p>
-            <b>Liste des dépendances.</b>
-            <ul>
-                <li><i>js/otp.js</i></li>
-                <li><i>js/session.js</i></li>
-                <li><i>js/srp.js</i></li>
-            </ul>
+            <b>Liste des dépendances :</b>
+        <ul>
+            <li><i>js/otp.js</i></li>
+            <li><i>js/session.js</i></li>
+            <li><i>js/srp.js</i></li>
+            <li><i>osef.js</i></li>
+        </ul>
         </p>
+
         <p>
-            <b>Réfs</b><br />
+            <b>Réfs :</b><br />
             <a href="http://tools.ietf.org/html/rfc5054">RFC5054 - Using the Secure Remote Password (SRP) Protocol for TLS Authentication</a><br />
             <a href="http://tools.ietf.org/html/rfc6238">RFC6238 - TOTP: Time-Based One-Time Password Algorithm</a><br />
             <a href="http://en.wikipedia.org/wiki/Google_Authenticator#Pseudocode_for_Time_OTP">Pseudocode for Time OTP</a><br />
             <a href="http://en.wikipedia.org/wiki/Secure_Remote_Password_protocol">Secure Remote Password protocol - Wikipedia</a><br />
             <a href="http://srp.stanford.edu/">The Stanford SRP Homepage</a><br />
         </p>
-
-        <div>
-            <label for="input_username">Username: </label>
-            <input type="text" name="input_username" id="input_username" /><br />
-
-            <label for="input_password">Password: </label>
-            <input type="password" name="input_password" id="input_password" /><br />
-
-            <input type="button" value="Login" id="btn_login" />
-            <input type="button" value="Logout" id="btn_logout" /><br />
-            <br />
-            <label for="input_namespace">Namespace: </label>
-            <input type="text" name="input_namespace" id="input_namespace" />
-            <input type="button" value="Read data" id="btn_data" />
-            <input type="button" value="Read data (remote)" id="btn_data_remote" />
-        </div>
-
-        <div>
-            <input type="button" value="Test de charge" id="btn_siege" />
-            <input type="text" name="input_siege" id="input_siege" value="100" size="4" />Connexions
-        </div>
-
-        <pre style="border: 1px solid black;" id ="box_status"></pre>
 
         <script src="../lib/vendors/requirejs/require.js"></script>
         <script>

@@ -4,13 +4,20 @@
 define(['jquery', 'session'], function (jQuery, Session) {
     'use strict';
 
-    Session.setConfig({
-        tipi_url:   'http://127.0.0.1:9999/',
-        timeout:    1800,   //  30 minutes
-        namespace:  'unittest'
-    });
-
     var session = Session.getInstance(),
+
+        config_session = function () {
+            if (!jQuery('#tipi_url').val() || !jQuery('#tipi_namespace').val() || !jQuery('#tipi_timeout').val()) {
+                window.alert("Veuillez configurer votre instance Tipi");
+                return false;
+            }
+            Session.setConfig({
+                tipi_url:   jQuery('#tipi_url').val(),
+                timeout:    jQuery('#tipi_timeout').val(),
+                namespace:  jQuery('#tipi_namespace').val()
+            });
+            return true;
+        },
 
         dump_status = function () {
             var tipi_session = localStorage.getItem('tipi_session'),
@@ -27,15 +34,18 @@ define(['jquery', 'session'], function (jQuery, Session) {
             if (!tipi_session) {
                 jQuery('#box_status').html('Pas de session');
             } else {
-                tipi_session = JSON.parse(tipi_session);
-
-                jQuery('#box_status').html(
-                    'user: ' + (tipi_session.user || '') + "\n" +
-                    'key: ' + (tipi_session.key || '') + "\n" +
-                    'sess_id: ' + (tipi_session.sess_id || '') + "\n" +
-                    'heartbeat: ' + (new Date(tipi_session.heartbeat * 1000) || '') + "\n" +
-                    'valid: ' + (session.isValid() ? 'true' : 'false')
-                );
+                if (session_valid) {
+                    tipi_session = JSON.parse(tipi_session);
+                    jQuery('#box_status').html(
+                        'user: ' + (tipi_session.user || '') + "\n" +
+                            'key: ' + (tipi_session.key || '') + "\n" +
+                            'sess_id: ' + (tipi_session.sess_id || '') + "\n" +
+                            'heartbeat: ' + (new Date(tipi_session.heartbeat * 1000) || '') + "\n" +
+                            'valid: ' + (session.isValid() ? 'true' : 'false')
+                    );
+                } else {
+                    jQuery('#box_status').html('Session non valide');
+                }
             }
         };
 
@@ -44,33 +54,24 @@ define(['jquery', 'session'], function (jQuery, Session) {
         dump_status();
         window.setInterval(dump_status, 1000);
 
-        //  Action du login
+        /**
+         * Login
+         */
         jQuery('#btn_login').click(function () {
-            /**
-             *  Demande de login.
-             */
-            session.login(
-                jQuery('input[name="input_username"]').val(),
-                jQuery('input[name="input_password"]').val()
-            ).done(function () {
-                /**
-                 *  Gestion du login ok ici
-                 */
-                console.log('Sucess');
-                dump_status();
-            }).fail(function () {
-                /**
-                 *  Gestion d'erreur de login ou mauvais mot de passe ici.
-                 *
-                 *  Note: mot de passe incorrect et utilisateur non existant: 400 Bad Request.
-                 */
-                jQuery('input[name="input_password"]').val('');
-                console.log('Error');
-            });
+            if (config_session()) {
+                session.login(
+                    jQuery('input[name="input_username"]').val(),
+                    jQuery('input[name="input_password"]').val()
+                ).done(function () {
+                    dump_status();
+                }).fail(function () {
+                    dump_status();
+                });
+            }
         });
 
         /**
-         *  Fermeture d'une session
+         *  Logout
          */
         jQuery('#btn_logout').click(function () {
             session.logout();

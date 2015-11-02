@@ -1,2 +1,4 @@
 /lib/vendors/
 node_modules/
+*.iml
+.idea
