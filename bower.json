@@ -1,7 +1,7 @@
 {
   "name": "gammadia/tipi-auth",
   "description": "Module d'authentification Tipi",
-  "version": "2.0.0",
+  "version": "2.1.4",
   "main": "lib/session.js",
   "dependencies": {
     "requirejs": "2.*",
