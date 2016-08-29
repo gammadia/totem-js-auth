@@ -1,12 +1,12 @@
 {
   "name": "gammadia/tipi-auth",
   "description": "Module d'authentification Tipi",
-  "version": "2.0.0",
+  "version": "2.1.4",
   "main": "lib/session.js",
   "dependencies": {
     "requirejs": "2.*",
     "jquery": "1.*",
-    "crypto-js": "https://crypto-js.googlecode.com/files/CryptoJS%20v3.1.2.zip"
+    "crypto-js": "https://stash.gammadia.ch/scm/tipi/crypto-js.git#3.1.2"
   },
   "ignore": [
     "demo/*",
