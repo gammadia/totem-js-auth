@@ -6,7 +6,7 @@
   "dependencies": {
     "requirejs": "2.*",
     "jquery": "1.*",
-    "crypto-js": "ssh://git@stash.gammadia.ch:7999/tipi/crypto-js.git#3.1.2"
+    "crypto-js": "https://stash.gammadia.ch/scm/tipi/crypto-js.git#3.1.2"
   },
   "ignore": [
     "demo/*",
