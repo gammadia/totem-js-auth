@@ -6,7 +6,7 @@
   "dependencies": {
     "requirejs": "2.*",
     "jquery": "1.*",
-    "crypto-js": "https://crypto-js.googlecode.com/files/CryptoJS%20v3.1.2.zip"
+    "crypto-js": "ssh://git@stash.gammadia.ch:7999/tipi/crypto-js.git#3.1.2"
   },
   "ignore": [
     "demo/*",
