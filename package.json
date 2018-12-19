@@ -7,6 +7,9 @@
     "lib": "lib",
     "test": "test"
   },
+  "scripts": {
+    "postinstall": "./node_modules/.bin/webpack"
+  },
   "repository": {
     "type": "git",
     "url": "ssh://git@stash.gammadia.ch:7999/tipi/auth-module-js.git"
