@@ -4,7 +4,8 @@ console.log([
   path.resolve(__dirname, 'lib/session.js'),
   path.join(__dirname, "node_modules/crypto-js/index"),
   path.join(__dirname, "node_modules/jquery/dist/jquery"),
-  path.join(__dirname, "lib/otp")
+  path.join(__dirname, "lib/otp"),
+  __dirname
 ]);
 let config = {
   // Entry, file to be bundled
