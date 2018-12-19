@@ -1,9 +1,6 @@
-const fs = require('fs');
 const path = require('path');
-const webpack = require('webpack');
 
 let basePath = path.join(__dirname, '/');
-
 let config = {
   // Entry, file to be bundled
   entry: {
@@ -31,9 +28,7 @@ let config = {
       "srp":                  basePath + "/lib/srp"
     },
     extensions: ['.js'] // File types
-  },
-  plugins: [
-  ]
+  }
 };
 
 module.exports = config;
