@@ -1,0 +1,22 @@
+{
+  "name": "tipi-auth",
+  "version": "2.1.7",
+  "description": "Tipi Auth module",
+  "main": "lib/session.js",
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@stash.gammadia.ch:7999/tipi/auth-module-js.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "private": true,
+  "dependencies": {
+    "async": "^2.6.1",
+    "crypto-js": "3.1.*",
+    "jquery": "^3.3.1"
+  },
+  "devDependencies": {
+    "webpack": "^4.27.1",
+    "webpack-cli": "^3.1.2"
+  }
+}
