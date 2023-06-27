@@ -203,7 +203,7 @@ define(['srp', 'jquery', 'otp', 'crypto-js'], function (Srp, jQuery, Otp, Crypto
             localStorage.setItem(
                 store_key,
                 JSON.stringify({
-                    user:   this.user,
+                    identity:   this.user,
                     key:        this.key,
                     sess_id:    this.sess_id,
                     heartbeat:  this.heartbeat
@@ -322,6 +322,19 @@ define(['srp', 'jquery', 'otp', 'crypto-js'], function (Srp, jQuery, Otp, Crypto
 
             // Enlève la partie du querystring.
             subject = subject.match(/.+\/\?|.+\?|.+/)[0].replace(/\/\?|\?/, '');
+            var token = null;
+
+            // Enlève la partie du querystring.
+            subject = subject.match(/.+\/\?|.+\?|.+/)[0].replace(/\/\?|\?/, '');
+
+            token = CryptoJS.enc.Base64.stringify(
+                CryptoJS.HmacSHA256(
+                    window.encodeURI(subject),
+                    this.key
+                )
+            );
+
+            return token;
 
             token = CryptoJS.enc.Base64.stringify(
                 CryptoJS.HmacSHA256(
@@ -451,7 +464,7 @@ define(['srp', 'jquery', 'otp', 'crypto-js'], function (Srp, jQuery, Otp, Crypto
          *  Reset des valeurs de base de la session
          */
         reset: function () {
-            this.user = null;
+            this.identity = null;
             this.key = null;
             this.sess_id = null;
             this.heartbeat = null;
@@ -485,7 +498,7 @@ define(['srp', 'jquery', 'otp', 'crypto-js'], function (Srp, jQuery, Otp, Crypto
             var sess = JSON.parse(localStorage.getItem(store_key));
 
             if (sess) {
-                this.user   = sess.user || null;
+                this.identity   = sess.user || null;
                 this.key        = sess.key || null;
                 this.sess_id    = sess.sess_id || null;
                 this.heartbeat  = sess.heartbeat || null;
