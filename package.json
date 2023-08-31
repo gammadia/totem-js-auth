@@ -1,6 +1,6 @@
 {
   "name": "tipi-auth",
-  "version": "2.1.7",
+  "version": "2.1.8",
   "description": "Tipi Auth module",
   "main": "lib/session.js",
   "repository": {
